@@ -17,6 +17,15 @@
 <a href="#15" id="15">15</a>
 <a href="#16" id="16">16</a>
 <a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Scope where "borrowed" base objects (for example Player or Vehicle) are guaranteed to be valid
 ///
 /// # Example
@@ -34,4 +43,13 @@
 /// });
 /// ```
 </span><span class="kw">pub trait </span>Scope {}
+
+<span class="kw">impl </span>Scope <span class="kw">for </span><span class="kw">crate</span>::timers::TimerContext {}
+<span class="kw">impl </span>Scope <span class="kw">for </span>ThisTickScope {}
+
+<span class="kw">struct </span>ThisTickScope;
+
+<span class="kw">pub fn </span>new_scope&lt;R&gt;(use_scope: <span class="kw">impl for</span>&lt;<span class="lifetime">'scope</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'scope </span>ThisTickScope) -&gt; R) -&gt; R {
+  use_scope(<span class="kw-2">&amp;</span>ThisTickScope)
+}
 </code></pre></div></section></main></body></html>

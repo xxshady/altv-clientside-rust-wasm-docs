@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Scope"]};
+window.SIDEBAR_ITEMS = {"fn":["new_scope"],"trait":["Scope"]};

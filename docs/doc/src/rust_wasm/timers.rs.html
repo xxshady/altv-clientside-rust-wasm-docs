@@ -350,28 +350,28 @@
   }
 }
 
-<span class="kw">pub fn </span>set_timeout&lt;<span class="lifetime">'context</span>&gt;(
-  callback: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'context </span>TimerContext) + <span class="lifetime">'static</span>,
+<span class="kw">pub fn </span>set_timeout(
+  callback: <span class="kw">impl for</span>&lt;<span class="lifetime">'context</span>&gt; FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'context </span>TimerContext) + <span class="lifetime">'static</span>,
   duration: Duration,
 ) -&gt; Timer {
   <span class="kw">let </span><span class="kw-2">mut </span>callback = <span class="prelude-val">Some</span>(callback);
   create_timer(
-    Box::new(<span class="kw">move </span>|| (callback.take().unwrap())(<span class="kw-2">&amp;</span>TimerContext)),
+    Box::new(<span class="kw">move </span>|| (callback.take().unwrap())(<span class="kw-2">&amp;</span>TimerContext {})),
     duration.as_millis() <span class="kw">as </span>u64, <span class="comment">// TODO: use Duration
     </span><span class="bool-val">true</span>,
   )
 }
 
 <span class="kw">pub fn </span>set_interval(
-  <span class="kw-2">mut </span>callback: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>TimerContext) + <span class="lifetime">'static</span>,
+  <span class="kw-2">mut </span>callback: <span class="kw">impl for</span>&lt;<span class="lifetime">'context</span>&gt; FnMut(<span class="kw-2">&amp;</span><span class="lifetime">'context </span>TimerContext) + <span class="lifetime">'static</span>,
   duration: Duration,
 ) -&gt; Timer {
   create_timer(
-    Box::new(<span class="kw">move </span>|| callback(<span class="kw-2">&amp;</span>TimerContext)),
+    Box::new(<span class="kw">move </span>|| callback(<span class="kw-2">&amp;</span>TimerContext {})),
     duration.as_millis() <span class="kw">as </span>u64, <span class="comment">// TODO: use Duration
     </span><span class="bool-val">false</span>,
   )
 }
 
-<span class="kw">pub struct </span>TimerContext;
+<span class="kw">pub struct </span>TimerContext {}
 </code></pre></div></section></main></body></html>

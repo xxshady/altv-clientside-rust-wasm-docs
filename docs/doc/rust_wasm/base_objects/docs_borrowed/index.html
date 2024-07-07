@@ -24,7 +24,12 @@ there are <a href="../scope/trait.Scope.html" title="trait rust_wasm::base_objec
 </span>});
 
 <span class="comment">// context is Scope
-</span>altv::set_timeout(|context| {
+</span>altv::events::on_net_owner_change(|context| {
+<span class="comment">// ...
+</span>});
+
+<span class="comment">// context is Scope
+</span>altv::every_tick(|context| {
 <span class="comment">// ...
 </span>}, Duration::from_secs(<span class="number">1</span>));</code></pre></div>
 <p>How to use scopes? See <a href="../scope/trait.Scope.html#example" title="trait rust_wasm::base_objects::scope::Scope"><code>Scope</code></a> trait for an example</p>

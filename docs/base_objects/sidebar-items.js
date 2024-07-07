@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["detached_player","docs_borrowed","player","scope"]};

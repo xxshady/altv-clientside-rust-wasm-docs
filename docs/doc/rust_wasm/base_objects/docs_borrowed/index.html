@@ -55,6 +55,23 @@ it needs to be attached to some scope</p>
 <p>For this use case it’s possible to create new scope anywhere using <a href="../scope/fn.new_scope.html" title="fn rust_wasm::base_objects::scope::new_scope"><code>new_scope</code></a></p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>future = <span class="kw">async </span>{
+  <span class="kw">let </span>player_name = altv::new_scope(|scope| {
+    <span class="kw">let </span>player = altv::Player::get_by_id(scope, <span class="number">123</span>);
+    <span class="comment">// let's assume player with such id is valid on this tick
+    </span><span class="kw">let </span>player = player.unwrap();
+
+    <span class="comment">// no need to hold reference to player instance if we only need data from it
+    </span>player.name()
+  });
+
+  altv::wait(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+
+  <span class="macro">dbg!</span>(player_name);
+};</code></pre></div>
+<p>If you want to hold reference to base object for longer than one scope
+(one tick) there are detached base objects, for example <a href="../detached_player/struct.DetachedPlayer.html" title="struct rust_wasm::base_objects::detached_player::DetachedPlayer"><code>DetachedPlayer</code></a></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>future = <span class="kw">async </span>{
   <span class="kw">let </span>detached_player = altv::new_scope(|scope| {
     <span class="kw">let </span>player = altv::Player::get_by_id(scope, <span class="number">123</span>);
     <span class="comment">// let's assume player with such id is valid on this tick

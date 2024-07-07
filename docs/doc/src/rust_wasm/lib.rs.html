@@ -72,11 +72,6 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>async_executor::{spawn_future, EXECUTOR_INSTANCE};
 <span class="kw">use </span>js_sys::{Function, Object, Reflect, Uint8Array, WebAssembly};
 <span class="kw">use </span>timers::{set_timeout, TIMER_MANAGER_INSTANCE, TIMER_SCHEDULE_INSTANCE};
@@ -125,21 +120,16 @@
   // );
 
   </span><span class="kw">let </span>future = <span class="kw">async </span>{
-    <span class="kw">let </span>detached_player = <span class="kw">crate</span>::base_objects::scope::new_scope(|scope| {
+    <span class="kw">let </span>player_name = <span class="kw">crate</span>::base_objects::scope::new_scope(|scope| {
       <span class="kw">let </span>player = base_objects::player::Player::get_by_id(scope, <span class="number">123</span>);
       <span class="comment">// let's assume player with such id is valid on this tick
       </span><span class="kw">let </span>player = player.unwrap();
 
-      player.detach_from_scope()
+      <span class="comment">// no need to hold reference to player instance if we only need data from it
+      </span>player.name()
     });
     wait(web_time::Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-    <span class="kw">crate</span>::base_objects::scope::new_scope(|scope| {
-      <span class="kw">let </span><span class="prelude-val">Some</span>(player) = detached_player.attach_to_scope(scope) <span class="kw">else </span>{
-        <span class="comment">// player was destroyed
-        </span><span class="kw">return</span>;
-      };
-      <span class="macro">dbg!</span>(player.name());
-    });
+    <span class="macro">dbg!</span>(player_name);
   };
 
   spawn_future(future);

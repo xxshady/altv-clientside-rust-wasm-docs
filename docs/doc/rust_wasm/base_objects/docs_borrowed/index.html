@@ -3,17 +3,26 @@
 <p>Base objects that are not owned by current resource,
 for example remote players, vehicles</p>
 <h3 id="scopes"><a class="doc-anchor" href="#scopes">§</a>Scopes</h3>
-<p>In order to guarantee borrowed base objects are not used after destroy (invalid base objects)
-there are <a href="../scope/trait.Scope.html" title="trait rust_wasm::base_objects::scope::Scope"><code>scopes</code></a></p>
+<p>“Scopes” are needed so that borrowed base objects cannot be used
+after destroy (invalid base objects)<br>
+One scope is equal to one tick (both serverside and clientside)<br>
+To use some borrowed base object (read something from it or call something on it)
+it needs to be attached to some scope</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// context is Scope
 </span>altv::set_timeout(|context| {
-  <span class="kw">let </span>players = altv::Player::streamed_in(context);
+  <span class="kw">let </span>player: <span class="prelude-ty">Option</span>&lt;altv::Player&gt; = altv::Player::get_by_id(
+    <span class="comment">/* scope: */ </span>context,
+    <span class="comment">/* id: */ </span><span class="number">123
+  </span>);
+  <span class="comment">// let's assume player with such id is always valid
+  </span><span class="kw">let </span>player = player.unwrap();
 
   altv::set_timeout(|<span class="kw">_</span>| {
     <span class="comment">// compile time error,
-    // players may already be destroyed when this callback is called
-    </span><span class="macro">dbg!</span>(players);
+    // this player was attached to `context` and
+    // may already be destroyed when this callback is called
+    </span><span class="macro">dbg!</span>(player);
   }, Duration::from_secs(<span class="number">1</span>));
 }, Duration::from_secs(<span class="number">1</span>));</code></pre></div>
 <p>Scopes are passed into event callbacks, timer callbacks, everywhere</p>

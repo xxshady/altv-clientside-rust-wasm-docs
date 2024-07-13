@@ -2,43 +2,64 @@
     <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../rust_wasm/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../../index.html">rust_wasm</a>::<wbr><a href="../index.html">base_objects</a>::<wbr><a class="mod" href="#">docs_borrowed</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../../src/rust_wasm/base_objects/docs_borrowed.rs.html#1">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="what-are-borrowed-base-objects"><a class="doc-anchor" href="#what-are-borrowed-base-objects">§</a>What are borrowed base objects</h2>
 <p>Base objects that are not owned by current resource,
 for example remote players, vehicles</p>
+<h3 id="problem"><a class="doc-anchor" href="#problem">§</a>Problem</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>player: <span class="prelude-ty">Option</span>&lt;altv::Player&gt; = altv::Player::get_by_id(<span class="number">123</span>);
+altv::set_timeout(|| {
+  <span class="kw">let </span>name: <span class="question-mark">??? </span>= player.name();
+}, Duration::from_secs(<span class="number">10</span>));</code></pre></div>
+<p>What should <code>player.name()</code> return?</p>
+<ul>
+<li><code>String</code>: Then what happens if player will be disconnected at that time? should it panic?</li>
+<li><code>Result&lt;String&gt;</code>: Return <code>Result</code> from ANY method, if player disconnected - return <code>Err</code> (that’s currently what JS module does (both v1 and v2))</li>
+</ul>
+<p>It turns out there is another way</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>altv::new_scope(|scope| {
+  <span class="comment">// `player` is attached to `scope` now
+  </span><span class="kw">let </span>player: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>altv::Player&gt; = altv::Player::get_by_id(scope, <span class="number">123</span>);
+
+  altv::set_timeout(|| {
+    <span class="comment">// compile time error, because `player` is attached to `scope`
+    // and scope is only valid in closure to which it is passed
+    </span><span class="kw">let </span>name: String = player.name();
+  }, Duration::from_secs(<span class="number">10</span>));
+});</code></pre></div>
+<p>When we need to use borrowed base object we attach it some scope (in other words one tick)</p>
+<p>To use <code>player</code> again we need to detach it (at this point we can’t call any method on it) and attach to new scope</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>new_scope(|scope| {
+  <span class="comment">// `player` is attached to `scope` now
+  </span><span class="kw">let </span>player: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>altv::Player&gt; = altv::Player::get_by_id(scope, <span class="number">123</span>);
+  <span class="comment">// "detaching" it
+  </span><span class="kw">let </span>detached_player = player.detach_from_scope();
+
+  altv::set_timeout(|scope| {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(player) = detached_player.attach_to_scope(scope) <span class="kw">else </span>{
+      <span class="comment">// player already disconnected
+      </span><span class="kw">return</span>;
+    };
+
+    <span class="comment">// all calls to `player` are infallible here ✨
+    </span><span class="kw">let </span>name: String = player.name();
+  }, Duration::from_secs(<span class="number">10</span>));
+});</code></pre></div>
 <h3 id="scopes"><a class="doc-anchor" href="#scopes">§</a>Scopes</h3>
 <p>“Scopes” are needed so that borrowed base objects cannot be used
 after destroy (invalid base objects)<br>
 One scope is equal to one tick (both serverside and clientside)<br>
 To use some borrowed base object (read something from it or call something on it)
 it needs to be attached to some scope</p>
-
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// `context` is Scope
-</span>altv::set_timeout(|context| {
-  <span class="kw">let </span>player: <span class="prelude-ty">Option</span>&lt;altv::Player&gt; = altv::Player::get_by_id(
-    <span class="comment">/* scope: */ </span>context,
-    <span class="comment">/* id: */ </span><span class="number">123
-  </span>);
-  <span class="comment">// let's assume player with such id is valid on this tick
-  </span><span class="kw">let </span>player = player.unwrap();
-
-  altv::set_timeout(|<span class="kw">_</span>| {
-    <span class="comment">// compile time error,
-    // this player was attached to `context` and
-    // may already be destroyed when this callback is called
-    </span><span class="macro">dbg!</span>(player);
-  }, Duration::from_secs(<span class="number">1</span>));
-}, Duration::from_secs(<span class="number">1</span>));</code></pre></div>
 <p>Scopes are passed into event callbacks, timer callbacks, everywhere</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// `context` is Scope
-</span>altv::events::on_game_entity_create(|context| {
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>altv::events::on_game_entity_create(|scope| {
 <span class="comment">// ...
 </span>});
 
-<span class="comment">// `context` is Scope
-</span>altv::events::on_net_owner_change(|context| {
+altv::events::on_net_owner_change(|scope| {
 <span class="comment">// ...
 </span>});
 
-<span class="comment">// `context` is Scope
-</span>altv::every_tick(|context| {
+altv::every_tick(|scope| {
 <span class="comment">// ...
 </span>});</code></pre></div>
 <p>But futures (async/await) is special case</p>
@@ -50,9 +71,10 @@ it needs to be attached to some scope</p>
     <span class="comment">/* id: */ </span><span class="number">123
   </span>);
   altv::wait(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-  <span class="macro">dbg!</span>(player.name());
+  <span class="comment">// ???
+  </span><span class="macro">dbg!</span>(player.name());
 };</code></pre></div>
-<p>For this use case it’s possible to create new scope anywhere using <a href="../scope/fn.new_scope.html" title="fn rust_wasm::base_objects::scope::new_scope"><code>new_scope</code></a></p>
+<p>In this case it’s possible to create new scope anywhere using <a href="../scope/fn.new_scope.html" title="fn rust_wasm::base_objects::scope::new_scope"><code>new_scope</code></a></p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>future = <span class="kw">async </span>{
   <span class="kw">let </span>player_name = altv::new_scope(|scope| {

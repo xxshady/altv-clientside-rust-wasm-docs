@@ -10,7 +10,7 @@ altv::set_timeout(|| {
 <p>What should <code>player.name()</code> return?</p>
 <ul>
 <li><code>String</code>: Then what happens if player will be disconnected at that time? should it panic?</li>
-<li><code>Result&lt;String&gt;</code>: Return <code>Result</code> from ANY method, if player disconnected - return <code>Err</code> (that’s currently what JS module does (both v1 and v2))</li>
+<li><code>Result&lt;String&gt;</code>: Return <code>Result</code> from ANY method, if player disconnected - return <code>Err</code> (that’s currently what JS module does (both v1 and v2) with “invalid base object” exceptions)</li>
 </ul>
 <p>It turns out there is another way</p>
 

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["detached_player","docs_borrowed","player","scope"]};
+window.SIDEBAR_ITEMS = {"mod":["base_object_type","detached_player","docs_borrowed","manager","player","scope","serialization"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["new_scope"],"trait":["Scope"]};
+window.SIDEBAR_ITEMS = {"fn":["new_scope"],"struct":["ThisTickScope"],"trait":["Scope"]};

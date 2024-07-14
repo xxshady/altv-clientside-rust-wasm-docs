@@ -53,9 +53,9 @@
 
     <span class="kw">let </span>waker = cx.waker().clone();
     set_timeout(
-      Box::new(|<span class="kw">_</span>| {
+      |<span class="kw">_</span>| {
         waker.wake();
-      }),
+      },
       duration,
     );
 

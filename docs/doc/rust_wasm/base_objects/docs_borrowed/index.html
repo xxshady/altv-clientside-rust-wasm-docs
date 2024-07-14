@@ -16,14 +16,14 @@ altv::set_timeout(|| {
 <li><code>Result&lt;String&gt;</code>: Return <code>Result</code> from ANY method, if player disconnected - return <code>Err</code></li>
 </ul>
 <p><code>Result&lt;String&gt;</code> would be similar to what JS module does (both v1 and v2) with “invalid base object” exceptions</p>
-<div class="example-wrap"><pre class="language-javascript"><code>const player = alt.Player.getByID(123);
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>player = alt.Player.getByID(<span class="number">123</span>);
 alt.Utils.assert(player != null);
 
 alt.setTimeout(() =&gt; {
-  // string or invalid base object exception
-  const name = player.name();
-}, 10_000);
-</code></pre></div>
+  <span class="comment">// string or invalid base object exception
+  </span><span class="kw">const </span>name = player.name();
+}, <span class="number">10_000</span>);</code></pre></div>
 <p>It turns out there is another way</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code>altv::new_scope(|scope| {
